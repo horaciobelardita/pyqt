@@ -6,6 +6,7 @@ class MainWindow(QtGui.QWidget):
 
     def __init__(self, parent=None):
         super(MainWindow, self).__init__()
+        self.setMinimumSize(800, 600)
         # etiqueta y boton para archivo vendedores
         sellers_button = QtGui.QPushButton('Archivo Vendedores', self)
         sellers_button.clicked.connect(self.__ask_sellers_file)
@@ -89,6 +90,8 @@ class MainWindow(QtGui.QWidget):
                 matriz[rows-1][cod_suc-1] += imp * cant
                 matriz[cod_v-1][5] += imp * cant
                 line = f.readline()
+
+        # recorrido del diccionario de vendedores y carga en la QTableWidget
         for cod, name in self.sellers.items():
             self.table.insertRow(self.table.rowCount())
             self.table.setItem(cod-1, 0, QtGui.QTableWidgetItem(str(cod)))
@@ -99,8 +102,22 @@ class MainWindow(QtGui.QWidget):
             self.table.setItem(cod-1, 5, QtGui.QTableWidgetItem(str(matriz[cod-1][3])))
             self.table.setItem(cod-1, 6, QtGui.QTableWidgetItem(str(matriz[cod-1][4])))
             self.table.setItem(cod-1, 7, QtGui.QTableWidgetItem(str(matriz[cod-1][5])))
+        # inserto una fila mas y muestro los valores para el total de totales
+        self.table.insertRow(self.table.rowCount())
+        row = self.table.rowCount() - 1
+        self.table.setItem(row, 1, QtGui.QTableWidgetItem('Total'))
+        column = 2
+        for i in range(6):
+            self.table.setItem(row, column, QtGui.QTableWidgetItem(str(matriz[row][i])))
+            column += 1
+        # calcular el total de la ultima columna
+        total = 0
+        for i in range(rows - 1):
+            total += matriz[i][5]
+        self.table.setItem(row, self.table.columnCount() - 1, QtGui.QTableWidgetItem(str(total)))
+
+        # muestro la tabla
         self.table.show()
-        self.setGeometry(0, 0, 1024, 768)
 
     def __ask_sellers_file(self):
         directory = os.path.dirname(__file__)
