@@ -77,19 +77,19 @@ class Dialog(QtWidgets.QDialog):
 
     def on_red_changed(self, value):
         self.red_label.setText(str(value))
-        self.update_rgb(value)
+        self.update_rgb('r' + str(value))
 
     def on_blue_changed(self, value):
         self.blue_label.setText(str(value))
-        self.update_rgb(value)
+        self.update_rgb('b' + str(value))
 
     def on_green_changed(self, value):
         self.green_label.setText(str(value))
-        self.update_rgb(value)
+        self.update_rgb('g' + str(value))
 
     def update_rgb(self, command):
         if self.arduino.isWritable():
-            self.arduino.write(str(command))
+            self.arduino.write(command)
         else:
             QtWidgets.QMessageBox.warning(self, 'Error!', 'No se puede escribir al puerto serial')
 
