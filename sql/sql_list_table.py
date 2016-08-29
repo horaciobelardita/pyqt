@@ -1,21 +1,6 @@
 from PyQt5 import QtSql, QtWidgets
 import sys
 
-def main():
-    db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-    db.setDatabaseName('db.sqlite')
-    if db.open():
-        print 'Conexion con exito!!'
-    else:
-        print db.lastError().text()
-    query = '''CREATE TABLE IF NOT EXISTS alumnos (id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name VARCHAR(100));'''
-    cursor = QtSql.QSqlQuery()
-    cursor.prepare(query)
-    if cursor.exec_():
-        print 'Tabla creado con exito!'
-    else:
-        print cursor.lastError().text()
 
 class SqlViewer(QtWidgets.QMainWindow):
 
