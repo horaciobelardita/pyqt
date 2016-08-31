@@ -1,36 +1,18 @@
 from PyQt5 import QtWidgets, QtSerialPort
+import serial
 import sys
 
-class MainWindow(QtWidgets.QWidget):
 
-    def __init__(self, parent=None):
-        super(MainWindow, self).__init__()
-        self.setWindowTitle('Control de encendido')
-        self.setFixedSize(300, 300)
-        self.arduino = QtSerialPort.QSerialPort()
-        self.arduino_available = False
-        self.__get_information()
-        self.__setup_arduino()
+class PowerDialog(QtWidgets.QDialog):
+
+    def __init__(self, parent, port):
+        super(PowerDialog, self).__init__(parent)
+        self.arduino = serial.Serial()
+        self.arduino.port = port
+        self.arduino.baudrate = 9600
+        self.arduino.open()
         self.setupUi()
 
-    def __get_information(self):
-        for port in QtSerialPort.QSerialPortInfo.availablePorts():
-            if port.hasVendorIdentifier() and port.hasProductIdentifier():
-                self.port_name = port.portName()
-                self.arduino_available = True
-
-    def __setup_arduino(self):
-        # abrir y configurar el serialport
-        if self.arduino_available:
-            self.arduino.setPortName(self.port_name)
-            if self.arduino.open(QtCore.QIODevice.WriteOnly):
-                self.arduino.setBaudRate(QtSerialPort.QSerialPort.Baud9600)
-            else:
-                # dar un mensaje de error
-                QtWidgets.QMessageBox.warning(self, 'Error!', "Error: {}".format(self.arduino.error()))
-        else:
-            QtWidgets.QMessageBox.warning(self, 'Error!', "Conecte su Arduino")
-            sys.exit()
 
     def setupUi(self):
         power_button = QtWidgets.QPushButton('ENCENDER', self)
@@ -43,16 +25,47 @@ class MainWindow(QtWidgets.QWidget):
 
 
     def on_power_clicked(self):
-        if self.arduino.isWritable():
-            self.arduino.write("1")
+        self.arduino.write('h')
 
     def on_off_clicked(self):
-        if self.arduino.isWritable():
-            self.arduino.write("0")
+        self.arduino.write('l')
 
     def __del__(self):
-        if self.arduino.isOpen():
+        if self.arduino.is_open:
             self.arduino.close()
+
+
+
+class MainWindow(QtWidgets.QWidget):
+
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent)
+        self.setWindowTitle('Control de encendido')
+        self.setupUi()
+        self.__get_information()
+
+    def __get_information(self):
+        for port in QtSerialPort.QSerialPortInfo.availablePorts():
+            if port.hasVendorIdentifier() and port.hasProductIdentifier():
+                self.listWidget.addItem(port.systemLocation())
+
+    def setupUi(self):
+        vbox = QtWidgets.QVBoxLayout(self)
+        self.listWidget = QtWidgets.QListWidget()
+        self.listWidget.itemClicked.connect(self.on_list_clicked)
+        self.connectButton = QtWidgets.QPushButton("Conectar", self)
+        self.connectButton.setEnabled(False)
+        self.connectButton.clicked.connect(self.on_connect_clicked)
+        vbox.addWidget(self.listWidget)
+        vbox.addWidget(self.connectButton)
+
+    def on_connect_clicked(self):
+        dialog = PowerDialog(self, self.portName)
+        dialog.exec_()
+
+    def on_list_clicked(self, item):
+        self.portName = item.data(0)
+        self.connectButton.setEnabled(True)
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
